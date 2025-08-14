@@ -5,7 +5,6 @@
     <title>Media Converter</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      /* ... Previous background and card styles ... */
       @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap");
       body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -135,6 +134,7 @@
       <div class="tabs">
         <button class="tab active" data-tab="image-tab">Image Converter</button>
         <button class="tab" data-tab="video-tab">Video Converter</button>
+        <button class="tab" data-tab="audio-tab">Audio Converter</button>
       </div>
       <div id="image-tab" class="tab-content active">
         <form
@@ -176,6 +176,27 @@
           <button type="submit">Convert</button>
         </form>
       </div>
+      <div id="audio-tab" class="tab-content">
+        <form
+          method="post"
+          enctype="multipart/form-data"
+          action="/convert-audio"
+        >
+          <label for="audio">Upload Audio</label>
+          <input type="file" name="audio" accept="audio/*" required />
+          <label for="audio_format">Convert to</label>
+          <select name="audio_format" required>
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+            <option value="ogg">OGG</option>
+            <option value="aac">AAC</option>
+            <option value="flac">FLAC</option>
+            <option value="wma">WMA</option>
+            <option value="m4a">M4A</option>
+          </select>
+          <button type="submit">Convert</button>
+        </form>
+      </div>
     </div>
     <script>
       // Tabs functionality
@@ -191,7 +212,7 @@
           document.getElementById(this.dataset.tab).classList.add("active");
         });
       });
-      // Random background images - you can use your own image URLs!
+      // Random background images
       const urls = [
         "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&q=80",
         "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=facearea&w=400&q=80",

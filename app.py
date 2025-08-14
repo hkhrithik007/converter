@@ -1,5 +1,5 @@
-
 from flask import Flask, render_template, request, send_file
+from pydub import AudioSegment
 from PIL import Image
 from moviepy.editor import VideoFileClip
 import io
@@ -8,9 +8,38 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("index.html")
+
+
+@app.route("/convert-audio", methods=["POST"])
+def convert_audio():
+    audio = request.files["audio"]
+    output_format = request.form["audio_format"].lower()
+    filename = secure_filename(audio.filename)
+    temp_input = f"temp_input_{filename}"
+    temp_output = f"temp_output.{output_format}"
+    audio.save(temp_input)
+    try:
+        song = AudioSegment.from_file(temp_input)
+        song.export(temp_output, format=output_format)
+        out_data = io.BytesIO(open(temp_output, "rb").read())
+    finally:
+        if os.path.exists(temp_input):
+            os.remove(temp_input)
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
+    out_data.seek(0)
+    mime = f"audio/{'mpeg' if output_format=='mp3' else output_format}"
+    return send_file(
+        out_data,
+        mimetype=mime,
+        as_attachment=True,
+        download_name=f"converted.{output_format}",
+    )
+
 
 @app.route("/convert-video", methods=["POST"])
 def convert_video():
@@ -22,6 +51,7 @@ def convert_video():
     video.save(temp_input)
 
     clip = VideoFileClip(temp_input)
+    mime = None
     try:
         if output_format == "gif":
             clip.write_gif(temp_output)
@@ -30,41 +60,33 @@ def convert_video():
             clip.write_videofile(temp_output, codec="libvpx", audio_codec="libvorbis")
             mime = "video/webm"
         else:
-            clip.write_videofile(temp_output, codec="libx264")
+            # Use libx264 for mp4/avi/mov, add audio_codec for mp4
+            audio_codec = "aac" if output_format in ("mp4", "mov", "m4v") else None
+            clip.write_videofile(temp_output, codec="libx264", audio_codec=audio_codec)
             mime = f"video/{output_format}"
     except Exception as e:
+        return f"Video conversion failed: {str(e)}", 500
+    finally:
         clip.close()
-        # Clean up temp input
         if os.path.exists(temp_input):
             os.remove(temp_input)
-        # Return error message or 500 response
-        return f"Video conversion failed: {str(e)}", 500
-
-    clip.close()
 
     if not os.path.exists(temp_output):
-        # Clean up temp input
-        if os.path.exists(temp_input):
-            os.remove(temp_input)
         return "Output video file was not created.", 500
 
     with open(temp_output, "rb") as f:
         data = io.BytesIO(f.read())
-
-    # Clean up temp files
-    if os.path.exists(temp_input):
-        os.remove(temp_input)
     if os.path.exists(temp_output):
         os.remove(temp_output)
 
     data.seek(0)
-
     return send_file(
         data,
         mimetype=mime,
         as_attachment=True,
         download_name=f"converted.{output_format}",
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
