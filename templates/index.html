@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Media Converter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      /* ... Previous background and card styles ... */
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap");
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        font-family: "Montserrat", sans-serif;
+        color: #241846;
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .background-images {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .card {
+        background: #fff;
+        padding: 2rem 2.5rem;
+        border-radius: 1.25rem;
+        box-shadow:
+          0 10px 32px rgba(0, 0, 0, 0.17),
+          0 2px 4px rgba(0, 0, 0, 0.12);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+      }
+      h2 {
+        margin-bottom: 1rem;
+        color: #241846;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-shadow:
+          0 2px 12px #fff,
+          0 1px 0 #c2b9d6;
+      }
+      .tabs {
+        display: flex;
+        border-bottom: 2px solid #eee;
+        margin-bottom: 1.5rem;
+      }
+      .tab {
+        flex: 1;
+        padding: 1rem;
+        cursor: pointer;
+        background: none;
+        border: none;
+        outline: none;
+        font-size: 1.1rem;
+        color: #7d59c1;
+        font-weight: 600;
+        border-bottom: 3px solid transparent;
+        transition:
+          color 0.2s,
+          border-bottom 0.2s;
+      }
+      .tab.active {
+        color: #241846;
+        border-bottom: 3px solid #764ba2;
+        background: #f7f6fc;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      label {
+        display: block;
+        text-align: left;
+        margin: 0.75rem 0 0.3rem 0.1rem;
+        color: #37296a;
+        font-weight: 600;
+        text-shadow: 0 1px 8px #fff;
+      }
+      input[type="file"],
+      select {
+        width: 100%;
+        padding: 0.4rem;
+        border-radius: 0.4rem;
+        border: 1px solid #eee;
+        background: #f7f6fc;
+        margin-bottom: 1rem;
+        color: #21123d;
+      }
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #48296a 100%);
+        color: #fff;
+        padding: 0.7rem 2.5rem;
+        border: none;
+        border-radius: 0.6rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(118, 75, 162, 0.12);
+        transition:
+          background 0.2s,
+          transform 0.2s;
+        text-shadow: 0 1px 3px #48296a99;
+      }
+      button:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px) scale(1.02);
+      }
+      @media (max-width: 430px) {
+        .card {
+          padding: 1.1rem 0.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background-images"></div>
+    <div class="card">
+      <h2>Media Converter</h2>
+      <div class="tabs">
+        <button class="tab active" data-tab="image-tab">Image Converter</button>
+        <button class="tab" data-tab="video-tab">Video Converter</button>
+      </div>
+      <div id="image-tab" class="tab-content active">
+        <form
+          method="post"
+          enctype="multipart/form-data"
+          action="/convert-image"
+        >
+          <label for="image">Upload Image</label>
+          <input type="file" name="image" accept="image/*" required />
+          <label for="format">Convert to</label>
+          <select name="format" required>
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="bmp">BMP</option>
+            <option value="gif">GIF</option>
+            <option value="tiff">TIFF</option>
+            <option value="webp">WEBP</option>
+            <option value="ico">ICO</option>
+          </select>
+          <button type="submit">Convert</button>
+        </form>
+      </div>
+      <div id="video-tab" class="tab-content">
+        <form
+          method="post"
+          enctype="multipart/form-data"
+          action="/convert-video"
+        >
+          <label for="video">Upload Video</label>
+          <input type="file" name="video" accept="video/*" required />
+          <label for="video_format">Convert to</label>
+          <select name="video_format" required>
+            <option value="mp4">MP4</option>
+            <option value="avi">AVI</option>
+            <option value="mov">MOV</option>
+            <option value="webm">WEBM</option>
+            <option value="gif">GIF (animated)</option>
+          </select>
+          <button type="submit">Convert</button>
+        </form>
+      </div>
+    </div>
+    <script>
+      // Tabs functionality
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document
+            .querySelectorAll(".tab")
+            .forEach((b) => b.classList.remove("active"));
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((tc) => tc.classList.remove("active"));
+          this.classList.add("active");
+          document.getElementById(this.dataset.tab).classList.add("active");
+        });
+      });
+      // Random background images - you can use your own image URLs!
+      const urls = [
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&q=80",
+        "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=facearea&w=400&q=80",
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&w=400&q=80",
+        "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=facearea&w=400&q=80",
+      ];
+      const bg = document.querySelector(".background-images");
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      for (let i = 0; i < 7; i++) {
+        const img = document.createElement("img");
+        const url = urls[Math.floor(Math.random() * urls.length)];
+        img.src = url;
+        img.style.position = "absolute";
+        img.style.top = random(0, 60) + "vh";
+        img.style.left = random(0, 80) + "vw";
+        img.style.width = random(90, 160) + "px";
+        img.style.opacity = 0.16 + 0.18 * Math.random();
+        img.style.transform = `rotate(${random(-45, 45)}deg) scale(${random(0.75, 1.1)})`;
+        img.style.filter = "blur(2px) grayscale(70%)";
+        img.style.pointerEvents = "none";
+        bg.appendChild(img);
+      }
+    </script>
+  </body>
+</html>
