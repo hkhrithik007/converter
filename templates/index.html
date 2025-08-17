@@ -137,11 +137,7 @@
         <button class="tab" data-tab="audio-tab">Audio Converter</button>
       </div>
       <div id="image-tab" class="tab-content active">
-        <form
-          method="post"
-          enctype="multipart/form-data"
-          action="/convert-image"
-        >
+        <form id="image-form" enctype="multipart/form-data">
           <label for="image">Upload Image</label>
           <input type="file" name="image" accept="image/*" required />
           <label for="format">Convert to</label>
@@ -158,11 +154,7 @@
         </form>
       </div>
       <div id="video-tab" class="tab-content">
-        <form
-          method="post"
-          enctype="multipart/form-data"
-          action="/convert-video"
-        >
+        <form id="video-form" enctype="multipart/form-data">
           <label for="video">Upload Video</label>
           <input type="file" name="video" accept="video/*" required />
           <label for="video_format">Convert to</label>
@@ -177,11 +169,7 @@
         </form>
       </div>
       <div id="audio-tab" class="tab-content">
-        <form
-          method="post"
-          enctype="multipart/form-data"
-          action="/convert-audio"
-        >
+        <form id="audio-form" enctype="multipart/form-data">
           <label for="audio">Upload Audio</label>
           <input type="file" name="audio" accept="audio/*" required />
           <label for="audio_format">Convert to</label>
@@ -198,8 +186,72 @@
         </form>
       </div>
     </div>
+    <!-- Progress bar -->
+    <div
+      id="progress-bar"
+      style="
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #764ba2;
+        color: white;
+        border-radius: 10px;
+        padding: 10px 30px;
+        font-weight: 600;
+        z-index: 99;
+        transition: background 0.3s;
+      "
+    >
+      <span id="progress-text">Converting, please wait...</span>
+      <span
+        id="progress-spinner"
+        style="margin-left: 16px; vertical-align: middle"
+      >
+        <svg width="24" height="24" viewBox="0 0 38 38">
+          <circle
+            cx="19"
+            cy="19"
+            r="16"
+            stroke="#fff"
+            stroke-width="4"
+            fill="none"
+            stroke-linecap="round"
+            stroke-dasharray="80"
+            stroke-dashoffset="60"
+          >
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 19 19"
+              to="360 19 19"
+              dur="1s"
+              repeatCount="indefinite"
+            />
+          </circle>
+        </svg>
+      </span>
+      <span
+        id="progress-tick"
+        style="display: none; margin-left: 12px; vertical-align: middle"
+      >
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#fff"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="20 6 10.8 17 4 10"></polyline>
+        </svg>
+      </span>
+    </div>
     <script>
-      // Tabs functionality
+      // Tab UI
       document.querySelectorAll(".tab").forEach((btn) => {
         btn.addEventListener("click", function () {
           document
@@ -212,7 +264,8 @@
           document.getElementById(this.dataset.tab).classList.add("active");
         });
       });
-      // Random background images
+
+      // Background images
       const urls = [
         "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&q=80",
         "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=facearea&w=400&q=80",
@@ -237,6 +290,122 @@
         img.style.pointerEvents = "none";
         bg.appendChild(img);
       }
+
+      // Progress bar utility functions
+      function showProgress() {
+        const bar = document.getElementById("progress-bar");
+        bar.style.display = "";
+        document.getElementById("progress-tick").style.display = "none";
+        document.getElementById("progress-spinner").style.display = "";
+        document.getElementById("progress-text").textContent =
+          "Converting, please wait...";
+        bar.style.background = "#764ba2";
+      }
+      function showTick() {
+        document.getElementById("progress-tick").style.display = "";
+        document.getElementById("progress-spinner").style.display = "none";
+        document.getElementById("progress-text").textContent =
+          "Conversion complete!";
+        document.getElementById("progress-bar").style.background = "#2ecc71";
+        setTimeout(() => {
+          document.getElementById("progress-bar").style.display = "none";
+          document.getElementById("progress-bar").style.background = "#764ba2";
+          document.getElementById("progress-text").textContent =
+            "Converting, please wait...";
+        }, 2000);
+      }
+      function hideProgress() {
+        document.getElementById("progress-bar").style.display = "none";
+      }
+
+      // AJAX for all forms
+      document
+        .getElementById("image-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          showProgress();
+          const form = e.target,
+            data = new FormData(form);
+          try {
+            const response = await fetch("/convert-image", {
+              method: "POST",
+              body: data,
+            });
+            if (!response.ok) throw new Error("Conversion failed");
+            const blob = await response.blob(),
+              url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = "converted." + form.format.value;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            a.remove();
+            showTick();
+          } catch (err) {
+            alert(err.message);
+            hideProgress();
+          }
+        });
+      document
+        .getElementById("video-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          showProgress();
+          const form = e.target,
+            data = new FormData(form);
+          try {
+            const response = await fetch("/convert-video", {
+              method: "POST",
+              body: data,
+            });
+            if (!response.ok) throw new Error("Conversion failed");
+            const blob = await response.blob(),
+              url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = "converted." + form.video_format.value;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            a.remove();
+            showTick();
+          } catch (err) {
+            alert(err.message);
+            hideProgress();
+          }
+        });
+      document
+        .getElementById("audio-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          showProgress();
+          const form = e.target,
+            data = new FormData(form);
+          try {
+            const response = await fetch("/convert-audio", {
+              method: "POST",
+              body: data,
+            });
+            if (!response.ok) throw new Error("Conversion failed");
+            const blob = await response.blob(),
+              url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = "converted." + form.audio_format.value;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            a.remove();
+            showTick();
+          } catch (err) {
+            alert(err.message);
+            hideProgress();
+          }
+        });
     </script>
   </body>
 </html>
