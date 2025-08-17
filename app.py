@@ -6,6 +6,7 @@ import io
 import os
 from werkzeug.utils import secure_filename
 
+pillow_heif.register_heif_opener()
 app = Flask(__name__)
 
 
@@ -36,6 +37,22 @@ def convert_audio():
     return send_file(
         out_data,
         mimetype=mime,
+        as_attachment=True,
+        download_name=f"converted.{output_format}",
+    )
+
+
+@app.route("/convert-image", methods=["POST"])
+def convert_image():
+    img = request.files["image"]
+    output_format = request.form["format"].lower()
+    im = Image.open(img)  # Will now open .heic files, thanks to pillow-heif
+    img_io = io.BytesIO()
+    im.save(img_io, output_format.upper())
+    img_io.seek(0)
+    return send_file(
+        img_io,
+        mimetype=f"image/{output_format}",
         as_attachment=True,
         download_name=f"converted.{output_format}",
     )
