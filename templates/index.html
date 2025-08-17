@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Media Converter</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap");
       body {
@@ -125,6 +125,43 @@
           padding: 1.1rem 0.6rem;
         }
       }
+
+      /* Responsive progress bar */
+      #progress-bar {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #764ba2;
+        color: white;
+        border-radius: 10px;
+        padding: 10px 30px;
+        font-weight: 600;
+        z-index: 9999;
+        transition: background 0.3s;
+        width: auto;
+        max-width: 90vw;
+        font-size: 1rem;
+        box-sizing: border-box;
+        text-align: center;
+        word-break: break-word;
+        user-select: none;
+      }
+      @media (max-width: 500px) {
+        #progress-bar {
+          font-size: 0.95rem;
+          padding: 7px 15px;
+          bottom: 10px;
+          border-radius: 7px;
+          max-width: 98vw;
+        }
+        #progress-bar svg {
+          width: 18px !important;
+          height: 18px !important;
+          vertical-align: middle;
+        }
+      }
     </style>
   </head>
   <body>
@@ -186,24 +223,8 @@
         </form>
       </div>
     </div>
-    <!-- Progress bar -->
-    <div
-      id="progress-bar"
-      style="
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #764ba2;
-        color: white;
-        border-radius: 10px;
-        padding: 10px 30px;
-        font-weight: 600;
-        z-index: 99;
-        transition: background 0.3s;
-      "
-    >
+
+    <div id="progress-bar">
       <span id="progress-text">Converting, please wait...</span>
       <span
         id="progress-spinner"
@@ -250,8 +271,9 @@
         </svg>
       </span>
     </div>
+
     <script>
-      // Tab UI
+      // Tabs functionality
       document.querySelectorAll(".tab").forEach((btn) => {
         btn.addEventListener("click", function () {
           document
@@ -265,7 +287,7 @@
         });
       });
 
-      // Background images
+      // Random background images
       const urls = [
         "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&q=80",
         "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=facearea&w=400&q=80",
@@ -291,12 +313,12 @@
         bg.appendChild(img);
       }
 
-      // Progress bar utility functions
       function showProgress() {
         const bar = document.getElementById("progress-bar");
-        bar.style.display = "";
+        bar.style.display = "block"; // Use 'block' instead of ''
         document.getElementById("progress-tick").style.display = "none";
-        document.getElementById("progress-spinner").style.display = "";
+        document.getElementById("progress-spinner").style.display =
+          "inline-block";
         document.getElementById("progress-text").textContent =
           "Converting, please wait...";
         bar.style.background = "#764ba2";
@@ -348,6 +370,7 @@
             hideProgress();
           }
         });
+
       document
         .getElementById("video-form")
         .addEventListener("submit", async function (e) {
@@ -377,6 +400,7 @@
             hideProgress();
           }
         });
+
       document
         .getElementById("audio-form")
         .addEventListener("submit", async function (e) {
