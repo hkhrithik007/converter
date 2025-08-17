@@ -1,12 +1,16 @@
 from flask import Flask, render_template, request, send_file
 from pydub import AudioSegment
 from PIL import Image
+import pillow_heif
+
+pillow_heif.register_heif_opener()
+
 from moviepy.editor import VideoFileClip
 import io
 import os
 from werkzeug.utils import secure_filename
 
-pillow_heif.register_heif_opener()
+# pillow_heif.register_heif_opener()
 app = Flask(__name__)
 
 
@@ -46,9 +50,10 @@ def convert_audio():
 def convert_image():
     img = request.files["image"]
     output_format = request.form["format"].lower()
-    im = Image.open(img)  # Will now open .heic files, thanks to pillow-heif
+    save_format = "JPEG" if output_format == "jpg" else output_format.upper()
+    im = Image.open(img)
     img_io = io.BytesIO()
-    im.save(img_io, output_format.upper())
+    im.save(img_io, save_format)
     img_io.seek(0)
     return send_file(
         img_io,
